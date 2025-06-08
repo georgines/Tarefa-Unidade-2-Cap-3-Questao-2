@@ -26,7 +26,7 @@ static std::string gerar_pagina_html() {
 static std::string gerar_status_json() {
     char buf[128];
     float temp = obter_temperatura_interna();
-    std::snprintf(buf, sizeof(buf), R"({"botao_a":%d,"botao_b":%d,"temperatura":%.2f})", botao_a_acionado, botao_b_acionado, temp);
+    std::snprintf(buf, sizeof(buf), R"({"botao_a":%d,"botao_b":%d,"temperatura":%.2f})", botao_a_estado, botao_b_estado, temp);
     return std::string(buf);
 }
 

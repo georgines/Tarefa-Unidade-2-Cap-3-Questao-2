@@ -19,6 +19,7 @@ private:
     void invocarCallback();
 
 public:
+    bool estaPressionadoAgora() const;
     Acionador(uint8_t pino);
     void registrarCallback(void (*callback)());
 
@@ -35,5 +36,3 @@ public:
 
     bool verificarAcionamento();
 };
-
-

@@ -31,6 +31,10 @@ void Acionador::invocarCallback()
     }
 }
 
+bool Acionador::estaPressionadoAgora() const {
+    return !gpio_get(this->pinoGpio);
+}
+
 void Acionador::registrarCallback(void (*callback)())
 {
     this->funcaoCallback = [callback](void *)
@@ -42,7 +46,7 @@ void Acionador::registrarCallback(void (*callback)())
 
 bool Acionador::verificarAcionamento()
 {
-    bool estadoAtual = !gpio_get(this->pinoGpio);
+    bool estadoAtual = this->estaPressionadoAgora();
 
     if (!this->debounceExpirado())
         return false;

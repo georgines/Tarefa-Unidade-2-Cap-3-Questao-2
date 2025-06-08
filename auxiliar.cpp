@@ -3,16 +3,13 @@
 Acionador BotaoA(PIN_BOTAO_A);
 Acionador BotaoB(PIN_BOTAO_B);
 
-void monitorar_botoes() {
-    botao_a_acionado = BotaoA.verificarAcionamento();
-    botao_b_acionado = BotaoB.verificarAcionamento();
+bool botao_a_estado = false;
+bool botao_b_estado = false;
 
-    if (botao_a_acionado) {
-        printf("Botão A pressionado\n");
-    }
-    if (botao_b_acionado) {
-        printf("Botão B pressionado\n");
-    }
+void monitorar_botoes()
+{
+    BotaoA.estaPressionadoAgora() ? botao_a_estado = true : botao_a_estado = false;
+    BotaoB.estaPressionadoAgora() ? botao_b_estado = true : botao_b_estado = false;
 }
 
 void ligarLED(uint8_t pino_led)
@@ -45,7 +42,6 @@ float obter_temperatura_interna()
     uint16_t valor_bruto = adc_read();
     return TEMPERATURA_BASE - ((valor_bruto * ADC_FATOR_CONVERSAO) - TEMPERATURA_OFFSET) / TEMPERATURA_ESCALA;
 }
-
 
 void inicializar_sensor_temperatura()
 {
