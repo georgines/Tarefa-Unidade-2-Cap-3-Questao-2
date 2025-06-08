@@ -9,23 +9,28 @@ namespace ServidorHttp
                                  FuncaoResposta resposta,
                                  TipoConteudo tipo)
     {
-        if (!resposta) return;
+        if (!resposta)
+            return;
         _rotas.push_back({metodo, caminho, resposta, tipo});
     }
 
     bool Servidor::processarRequisicao(const std::string &requisicao,
                                        std::string &respostaHTTP)
     {
-        if (requisicao.empty()) return false;
+        if (requisicao.empty())
+            return false;
 
         auto metodoReq = extrairMetodo(requisicao);
         auto caminhoReq = extrairCaminho(requisicao);
+
+        printf("DEBUG: método='%s', caminho='%s'\n", metodoReq.c_str(), caminhoReq.c_str());
 
         for (const auto &rota : _rotas)
         {
             if (metodoReq == metodoParaString(rota.metodo) && caminhoReq == rota.caminho)
             {
-                if (!rota.resposta) return false;
+                if (!rota.resposta)
+                    return false;
                 std::string corpo = rota.resposta();
                 std::string cab = montarCabecalho(rota.tipo, corpo.size());
                 respostaHTTP = cab + corpo;
