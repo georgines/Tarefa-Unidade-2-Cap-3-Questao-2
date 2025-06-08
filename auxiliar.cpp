@@ -12,14 +12,32 @@ void monitorar_botoes()
     BotaoB.estaPressionadoAgora() ? botao_b_estado = true : botao_b_estado = false;
 }
 
-void ligarLED(uint8_t pino_led)
+static bool estado_led_azul = false;
+static bool estado_led_verde = false;
+static bool estado_led_vermelho = false;
+
+std::string alternar_led(uint gpio, bool &estado_led)
 {
-    gpio_put(pino_led, true);
+    estado_led = !estado_led;
+    gpio_put(gpio, estado_led);
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), R"({"ligado":%d})", estado_led);
+    return std::string(buf);
 }
 
-void desligarLED(uint8_t pino_led)
+std::string alternar_led_azul()
 {
-    gpio_put(pino_led, false);
+    return alternar_led(LED_AZUL, estado_led_azul);
+}
+
+std::string alternar_led_verde()
+{
+    return alternar_led(LED_VERDE, estado_led_verde);
+}
+
+std::string alternar_led_vermelho()
+{
+    return alternar_led(LED_VERMELHO, estado_led_vermelho);
 }
 
 void inicializar_led(uint8_t pino_led)
