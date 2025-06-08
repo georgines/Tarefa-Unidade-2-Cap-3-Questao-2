@@ -35,7 +35,15 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(tarefau2c31 tarefau2c31.cpp )
+add_executable(tarefau2c31
+    tarefau2c31.cpp
+    auxiliarLeds.cpp
+    auxiliarBotoes.cpp
+    auxiliarWifi.cpp
+    auxiliarSensorTemperatura.cpp
+    servidor.cpp
+    Acionador.cpp
+)
 
 pico_set_program_name(tarefau2c31 "tarefau2c31")
 pico_set_program_version(tarefau2c31 "0.1")
