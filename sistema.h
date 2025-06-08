@@ -44,7 +44,7 @@ typedef struct
 {
     const char *requisicao;
     AcaoLed acao;
-} AcaoLedMap;
+} MapaAcaoLed;
 
 // ——— HTML em Flash ———
 static const char header_fmt[] __in_flash("hdr") =
@@ -59,6 +59,7 @@ static const char body_fmt[] __in_flash("body") =
     "<html>\n"
     "<head>\n"
     "  <meta charset=\"utf-8\">\n"
+    "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
     "  <title>Controle de LEDs</title>\n"
     "  <style>…seu CSS…</style>\n"
     "</head>\n"
@@ -78,4 +79,4 @@ static const char body_fmt[] __in_flash("body") =
 static char req_buf[REQ_BUF_SIZE];
 static size_t req_pos;
 
-static AcaoLedMap mapa_acoes_led[6];
+static MapaAcaoLed mapa_acoes_led[6];
