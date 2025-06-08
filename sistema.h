@@ -2,52 +2,44 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <functional>   
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
+#include "pico/platform/sections.h"
 #include "lwip/tcp.h"
 #include "lwip/netif.h"
 #include "Acionador.h"
-#include "pico/platform/sections.h"
 
+//botoes
 #define PIN_BOTAO_A 5
 #define PIN_BOTAO_B 6
-#define LED_AZUL_PIN 12
-#define LED_VERDE_PIN 11
-#define LED_VERMELHO_PIN 13
 
+//leds
+#define LED_AZUL 12
+#define LED_VERDE 11
+#define LED_VERMELHO 13
+
+//wifi
 #define WIFI_SSID "GERALDO_CASA"
 #define WIFI_PASS "joanadarcnovo"
 
+//webserver
 #define PORTA_HTTP 80
+#define TAMANHO_HTML 2048
 
+//sensor de temperatura
 #define ADC_INPUT_TEMPERATURA 4
 #define ADC_FATOR_CONVERSAO (3.3f / (1 << 12))
 #define TEMPERATURA_BASE 27.0f
 #define TEMPERATURA_OFFSET 0.706f
 #define TEMPERATURA_ESCALA 0.001721f
 
-#define TAMANHO_HTML 2048
-#define REQ_BUF_SIZE 512
-
+//status dos botões
 static bool botao_a_acionado = false;
 static bool botao_b_acionado = false;
 
-typedef void (*AcaoLed)();
-
-typedef struct
-{
-    const char *requisicao;
-    AcaoLed acao;
-} MapaAcaoLed;
-
-static const char header_fmt[] __in_flash("hdr") =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html; charset=utf-8\r\n"
-    "Content-Length: %d\r\n"
-    "Connection: close\r\n"
-    "\r\n";
-
+//pagina html index
 static const char body_fmt[] __in_flash("body") =
     "<!DOCTYPE html>\n"
     "<html>\n"
@@ -68,8 +60,3 @@ static const char body_fmt[] __in_flash("body") =
     "  <p class=\"temperatura\">Temperatura: %.2f &deg;C</p>\n"
     "</body>\n"
     "</html>\n";
-
-static char req_buf[REQ_BUF_SIZE];
-static size_t req_pos;
-
-static MapaAcaoLed mapa_acoes_led[6];
