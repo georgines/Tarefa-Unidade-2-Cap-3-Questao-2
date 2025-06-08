@@ -1,121 +1,124 @@
 #include "servidor.h"
-#include "auxiliarLeds.h"
+#include "ServidorHttp.h"
+#include "sistema.h"
 #include "auxiliarSensorTemperatura.h"
+#include "auxiliarBotoes.h"
+#include "lwip/tcp.h"
+#include "lwip/ip_addr.h"
+#include "lwip/pbuf.h"
+#include <string>
+#include <cstdio>
+#include <cstring>
 
-// callback de envio concluído: agora sim fecha de verdade
-static err_t ao_enviar_fechar(void *arg, struct tcp_pcb *pcb, u16_t len) {
+static ServidorHttp::Servidor servidor_http;
+
+static std::string gerar_pagina_html()
+{
+    char buf[1024];
+    float temp = obter_temperatura_interna();
+    std::snprintf(buf, sizeof(buf), body_fmt, temp);
+    return std::string(buf);
+}
+
+static std::string gerar_status_json()
+{
+    char buf[128];
+    float temp = obter_temperatura_interna();
+    std::snprintf(buf, sizeof(buf),
+                  R"({"buttonA":%d,"buttonB":%d,"temperature":%.2f})",
+                  botao_a_acionado,
+                  botao_b_acionado,
+                  temp);
+    return std::string(buf);
+}
+
+static std::string gerar_favicon()
+{
+    return std::string();
+}
+
+static void registrar_rotas_http()
+{
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/", gerar_pagina_html, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/status", gerar_status_json, ServidorHttp::TipoConteudo::JSON
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/favicon.ico", gerar_favicon, ServidorHttp::TipoConteudo::HTML
+    );
+}
+
+static err_t callback_fechar_conexao(void* /*arg*/, struct tcp_pcb* pcb, u16_t /*len*/)
+{
     tcp_close(pcb);
     return ERR_OK;
 }
 
-err_t aceitar_conexao_tcp(void *arg, struct tcp_pcb *novo_pcb, err_t err) {
-    // limpa buffer de requisição
-    req_pos = 0;
-    req_buf[0] = '\0';
-    // registra callbacks
-    tcp_arg(novo_pcb, novo_pcb);
-    tcp_recv(novo_pcb, tratar_requisicao_tcp);
-    return ERR_OK;
-}
-
-err_t tratar_requisicao_tcp(void *arg, struct tcp_pcb *pcb,
-                           struct pbuf *buffer, err_t err) 
+static void enviar_resposta_http(struct tcp_pcb* pcb, const std::string& resposta)
 {
-    if (!buffer) {
-        // cliente fechou
-        tcp_close(pcb);
-        return ERR_OK;
-    }
-
-    // 1) diz pro LWIP que consumiu esses bytes
-    tcp_recved(pcb, buffer->len);
-
-    // 2) copia pro nosso buffer (sem ultrapassar)
-    size_t copiar = buffer->len;
-    if (req_pos + copiar > REQ_BUF_SIZE-1) copiar = REQ_BUF_SIZE-1 - req_pos;
-    memcpy(req_buf + req_pos, buffer->payload, copiar);
-    req_pos += copiar;
-    req_buf[req_pos] = '\0';
-
-    // libera o pbuf
-    pbuf_free(buffer);
-
-    // 3) só processa QUANDO vir o final de cabeçalho
-    if (!strstr(req_buf, "\r\n\r\n")) {
-        // ainda não chegou tudo
-        return ERR_OK;
-    }
-
-    // opcional: remover tudo após \r\n\r\n se quiser reusar req_buf
-    // 
-
-    printf("Requisição completa:\n%s\n", req_buf);
-    executar_acao_led(req_buf);
-
-    // 4) gera HTML
-    char html[TAMANHO_HTML];
-    float temperatura = obter_temperatura_interna();
-
-    // calcula e monta resposta
-    int tamanho_corpo = snprintf(NULL, 0, body_fmt, temperatura);
-    int tamanho_cabecalho  = snprintf(html, sizeof(html), header_fmt, tamanho_corpo);
-    snprintf(html + tamanho_cabecalho, sizeof(html) - tamanho_cabecalho, body_fmt, temperatura);
-
-    // 5) registra callback de envio concluído e envia
-    tcp_sent(pcb, ao_enviar_fechar);
-    tcp_write(pcb, html, strlen(html), TCP_WRITE_FLAG_COPY);
+    if (!pcb || resposta.empty()) return; // Prevenir ponteiros vazios
+    tcp_write(pcb, resposta.data(), resposta.size(), TCP_WRITE_FLAG_COPY);
+    tcp_sent(pcb, callback_fechar_conexao);
     tcp_output(pcb);
+}
 
-    // não esperar mais requisições neste pcb
-    tcp_recv(pcb, NULL);
+static void enviar_404(struct tcp_pcb* pcb)
+{
+    if (!pcb) return; // Prevenir ponteiros vazios
+    const char* hdr =
+        "HTTP/1.1 404 Not Found\r\n"
+        "Connection: close\r\n"
+        "Content-Length: 0\r\n"
+        "\r\n";
+    tcp_write(pcb, hdr, strlen(hdr), TCP_WRITE_FLAG_COPY);
+    tcp_sent(pcb, callback_fechar_conexao);
+    tcp_output(pcb);
+}
+
+static err_t callback_receber_dados(void* /*arg*/, struct tcp_pcb* pcb, struct pbuf* p, err_t /*err*/)
+{
+    if (!pcb || !p) return ERR_OK; // Prevenir ponteiros vazios
+
+    tcp_recved(pcb, p->len);
+
+    {
+        size_t len = p->len < 512 ? p->len : 511;
+        char debug_buf[512];
+        std::memcpy(debug_buf, p->payload, len);
+        debug_buf[len] = '\0';
+        printf("Depuração - requisição recebida:\n%s\n", debug_buf);
+    }
+
+    std::string req(reinterpret_cast<char*>(p->payload), p->len);
+    pbuf_free(p);
+
+    std::string resp;
+    if (servidor_http.processarRequisicao(req, resp)) {
+        enviar_resposta_http(pcb, resp);
+    } else {
+        enviar_404(pcb);
+    }
 
     return ERR_OK;
 }
 
-void inicializar_mapa_acoes_led() {
-    mapa_acoes_led[0] = {"GET /blue_on", ligar_led_azul};
-    mapa_acoes_led[1] = {"GET /blue_off", desligar_led_azul};
-    mapa_acoes_led[2] = {"GET /green_on", ligar_led_verde};
-    mapa_acoes_led[3] = {"GET /green_off", desligar_led_verde};
-    mapa_acoes_led[4] = {"GET /red_on", ligar_led_vermelho};
-    mapa_acoes_led[5] = {"GET /red_off", desligar_led_vermelho};
-}
-
-void executar_acao_led(const char *requisicao) {
-    for (size_t i = 0; i < sizeof(mapa_acoes_led) / sizeof(mapa_acoes_led[0]); ++i) {
-        if (strstr(requisicao, mapa_acoes_led[i].requisicao)) {
-            mapa_acoes_led[i].acao();
-            return;
-        }
-    }
+static err_t callback_aceitar_conexao(void* /*arg*/, struct tcp_pcb* new_pcb, err_t /*err*/)
+{
+    if (!new_pcb) return ERR_OK; // Prevenir ponteiros vazios
+    tcp_arg(new_pcb, new_pcb);
+    tcp_recv(new_pcb, callback_receber_dados);
+    return ERR_OK;
 }
 
 void inicializar_servidor()
 {
-    struct tcp_pcb *pcb = tcp_new();
+    registrar_rotas_http();
 
-    if (!pcb)
-    {
-        printf("Erro ao criar PCB TCP\n");
-        return;
-    }
-
-    err_t err = tcp_bind(pcb, IP_ADDR_ANY, PORTA_HTTP);
-
-    if (err != ERR_OK)
-    {
-        printf("Erro ao vincular o PCB TCP: %d\n", err);
-        return;
-    }
-
+    struct tcp_pcb* pcb = tcp_new();
+    if (!pcb) return;
+    tcp_bind(pcb, IP_ADDR_ANY, 80);
     pcb = tcp_listen(pcb);
-
-    if (!pcb)
-    {
-        printf("Erro ao escutar no PCB TCP\n");
-        return;
-    }
-
-    tcp_accept(pcb, aceitar_conexao_tcp);
-    printf("Servidor HTTP iniciado na porta %d\n", PORTA_HTTP);
+    tcp_accept(pcb, callback_aceitar_conexao);
 }

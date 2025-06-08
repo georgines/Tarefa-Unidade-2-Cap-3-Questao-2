@@ -10,28 +10,23 @@
 #include "Acionador.h"
 #include "pico/platform/sections.h"
 
-// GPIO pins
 #define PIN_BOTAO_A 5
 #define PIN_BOTAO_B 6
 #define LED_AZUL_PIN 12
 #define LED_VERDE_PIN 11
 #define LED_VERMELHO_PIN 13
 
-// Wi-Fi credentials
 #define WIFI_SSID "GERALDO_CASA"
 #define WIFI_PASS "joanadarcnovo"
 
-// HTTP server
 #define PORTA_HTTP 80
 
-// ADC constants
 #define ADC_INPUT_TEMPERATURA 4
 #define ADC_FATOR_CONVERSAO (3.3f / (1 << 12))
 #define TEMPERATURA_BASE 27.0f
 #define TEMPERATURA_OFFSET 0.706f
 #define TEMPERATURA_ESCALA 0.001721f
 
-// HTML constants
 #define TAMANHO_HTML 2048
 #define REQ_BUF_SIZE 512
 
@@ -46,7 +41,6 @@ typedef struct
     AcaoLed acao;
 } MapaAcaoLed;
 
-// ——— HTML em Flash ———
 static const char header_fmt[] __in_flash("hdr") =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html; charset=utf-8\r\n"
@@ -75,7 +69,6 @@ static const char body_fmt[] __in_flash("body") =
     "</body>\n"
     "</html>\n";
 
-// buffer pra acumular requisição
 static char req_buf[REQ_BUF_SIZE];
 static size_t req_pos;
 

@@ -11,14 +11,12 @@ void inicializar_stdio()
     printf("Iniciando monitor de botões...\n");
 }
 
-
 int main()
 {
     inicializar_stdio();
     inicializar_leds();
     inicializar_sensor_temperatura();
     inicializar_wifi();
-    inicializar_mapa_acoes_led();
     inicializar_servidor();
     while (true)
     {
