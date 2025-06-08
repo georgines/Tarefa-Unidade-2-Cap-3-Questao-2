@@ -21,8 +21,8 @@
 #define LED_VERMELHO 13
 
 //wifi
-#define WIFI_SSID "GERALDO_CASA"
-#define WIFI_PASS "joanadarcnovo"
+#define WIFI_SSID "RECEPCAO"
+#define WIFI_PASS "naotedouasenha1234"
 
 //webserver
 #define PORTA_HTTP 80

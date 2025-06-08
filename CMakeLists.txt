@@ -48,8 +48,8 @@ pico_set_program_name(tarefau2c31 "tarefau2c31")
 pico_set_program_version(tarefau2c31 "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(tarefau2c31 0)
-pico_enable_stdio_usb(tarefau2c31 1)
+pico_enable_stdio_uart(tarefau2c31 1)
+pico_enable_stdio_usb(tarefau2c31 0)
 
 # Add the standard library to the build
 target_link_libraries(tarefau2c31
