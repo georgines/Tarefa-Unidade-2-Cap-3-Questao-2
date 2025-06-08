@@ -47,7 +47,7 @@ static const char body_fmt[] __in_flash("body") =
     "  <meta charset=\"utf-8\">\n"
     "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
     "  <title>Controle de LEDs</title>\n"
-    "  <style>…seu CSS…</style>\n"
+    "  <style></style>\n"
     "</head>\n"
     "<body>\n"
     "  <h1>Controle de LEDs</h1>\n"
