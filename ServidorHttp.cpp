@@ -9,14 +9,14 @@ namespace ServidorHttp
                                  FuncaoResposta resposta,
                                  TipoConteudo tipo)
     {
-        if (!resposta) return; // Prevenir ponteiros vazios
+        if (!resposta) return;
         _rotas.push_back({metodo, caminho, resposta, tipo});
     }
 
     bool Servidor::processarRequisicao(const std::string &requisicao,
                                        std::string &respostaHTTP)
     {
-        if (requisicao.empty()) return false; // Prevenir ponteiros vazios
+        if (requisicao.empty()) return false;
 
         auto metodoReq = extrairMetodo(requisicao);
         auto caminhoReq = extrairCaminho(requisicao);
@@ -25,7 +25,7 @@ namespace ServidorHttp
         {
             if (metodoReq == metodoParaString(rota.metodo) && caminhoReq == rota.caminho)
             {
-                if (!rota.resposta) return false; // Prevenir ponteiros vazios
+                if (!rota.resposta) return false;
                 std::string corpo = rota.resposta();
                 std::string cab = montarCabecalho(rota.tipo, corpo.size());
                 respostaHTTP = cab + corpo;
