@@ -1,9 +1,7 @@
 #include "sistema.h"
-#include "auxiliarLeds.h"
-#include "auxiliarWifi.h"
-#include "auxiliarSensorTemperatura.h"
+#include "auxiliar.h"
 #include "servidor.h"
-#include "auxiliarBotoes.h"
+#include "auxiliarWifi.h"
 
 void inicializar_stdio()
 {

@@ -37,10 +37,8 @@ pico_sdk_init()
 
 add_executable(tarefau2c31
     tarefau2c31.cpp
-    auxiliarLeds.cpp
-    auxiliarBotoes.cpp
+    auxiliar.cpp
     auxiliarWifi.cpp
-    auxiliarSensorTemperatura.cpp
     servidor.cpp
     Acionador.cpp
     ServidorHttp.cpp
