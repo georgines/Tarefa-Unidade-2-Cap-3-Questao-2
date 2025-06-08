@@ -25,7 +25,7 @@ static std::string gerar_status_json()
     char buf[128];
     float temp = obter_temperatura_interna();
     std::snprintf(buf, sizeof(buf),
-                  R"({"buttonA":%d,"buttonB":%d,"temperature":%.2f})",
+                  R"({"botao_a":%d,"botao_b":%d,"temperatura":%.2f})",
                   botao_a_acionado,
                   botao_b_acionado,
                   temp);
@@ -44,9 +44,26 @@ static void registrar_rotas_http()
     );
     servidor_http.adicionarRota(
         ServidorHttp::MetodoHTTP::GET, "/status", gerar_status_json, ServidorHttp::TipoConteudo::JSON
+    ); servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/favicon.ico", gerar_favicon, ServidorHttp::TipoConteudo::HTML
     );
     servidor_http.adicionarRota(
-        ServidorHttp::MetodoHTTP::GET, "/favicon.ico", gerar_favicon, ServidorHttp::TipoConteudo::HTML
+        ServidorHttp::MetodoHTTP::GET, "/az/ligado", []() { gpio_put(LED_AZUL, true); return ""; }, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/az/desligado", []() { gpio_put(LED_AZUL, false); return ""; }, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/vr/ligado", []() { gpio_put(LED_VERDE, true); return ""; }, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/vr/desligado", []() { gpio_put(LED_VERDE, false); return ""; }, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/vm/ligado", []() { gpio_put(LED_VERMELHO, true); return ""; }, ServidorHttp::TipoConteudo::HTML
+    );
+    servidor_http.adicionarRota(
+        ServidorHttp::MetodoHTTP::GET, "/vm/desligado", []() { gpio_put(LED_VERMELHO, false); return ""; }, ServidorHttp::TipoConteudo::HTML
     );
 }
 
