@@ -6,7 +6,7 @@
 void inicializar_stdio()
 {
     stdio_init_all();
-    printf("Iniciando monitor de botões...\n");
+    printf("Iniciando monitor de joystick...\n");
 }
 
 int main()
