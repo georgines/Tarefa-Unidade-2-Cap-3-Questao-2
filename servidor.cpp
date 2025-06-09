@@ -20,16 +20,20 @@ struct EstadoEnvioHttp
 static std::string gerar_pagina_html()
 {
     char buf[TAMANHO_HTML];
-    float temp = obter_temperatura_interna();
-    std::snprintf(buf, sizeof(buf), body_fmt, temp);
+    std::snprintf(buf, sizeof(buf), body_fmt);
     return std::string(buf);
 }
 
 static std::string gerar_status_json()
 {
-    char buf[128];
-    float temp = obter_temperatura_interna();
-    std::snprintf(buf, sizeof(buf), R"({"botao_a":%d,"botao_b":%d,"temperatura":%.2f})", botao_a_estado, botao_b_estado, temp);
+    char buf[256];
+    int pos_x = ler_posicao_joystick_x();
+    int pos_y = ler_posicao_joystick_y();
+    std::string direcao = obter_direcao_joystick();
+
+    std::snprintf(buf, sizeof(buf),
+                  R"({"joystick_x":%d,"joystick_y":%d,"direcao":"%s"})",
+                  pos_x, pos_y, direcao.c_str());
     return std::string(buf);
 }
 

@@ -1,17 +1,5 @@
 #include "auxiliar.h"
 
-Acionador BotaoA(PIN_BOTAO_A);
-Acionador BotaoB(PIN_BOTAO_B);
-
-bool botao_a_estado = false;
-bool botao_b_estado = false;
-
-void monitorar_botoes()
-{
-    BotaoA.estaPressionadoAgora() ? botao_a_estado = true : botao_a_estado = false;
-    BotaoB.estaPressionadoAgora() ? botao_b_estado = true : botao_b_estado = false;
-}
-
 static bool estado_led_azul = false;
 static bool estado_led_verde = false;
 static bool estado_led_vermelho = false;
@@ -54,15 +42,46 @@ void inicializar_leds()
     inicializar_led(LED_VERMELHO);
 }
 
-float obter_temperatura_interna()
-{
-    adc_select_input(ADC_INPUT_TEMPERATURA);
-    uint16_t valor_bruto = adc_read();
-    return TEMPERATURA_BASE - ((valor_bruto * ADC_FATOR_CONVERSAO) - TEMPERATURA_OFFSET) / TEMPERATURA_ESCALA;
-}
-
-void inicializar_sensor_temperatura()
+void inicializar_joystick()
 {
     adc_init();
-    adc_set_temp_sensor_enabled(true);
+    adc_gpio_init(27); // X -> ADC1
+    adc_gpio_init(26); // Y -> ADC0
 }
+
+int ler_posicao_joystick_x()
+{
+    adc_select_input(1); // ADC1 -> GPIO27
+    return adc_read();
+}
+
+int ler_posicao_joystick_y()
+{
+    adc_select_input(0); // ADC0 -> GPIO26
+    return adc_read();
+}
+
+std::string obter_direcao_joystick()
+{
+    int x = ler_posicao_joystick_x();
+    int y = ler_posicao_joystick_y();
+
+    const int centro = 2048;
+    const int margem = 600;
+
+    bool esquerda = x < centro - margem;
+    bool direita = x > centro + margem;
+    bool cima = y > centro + margem;
+    bool baixo = y < centro - margem;
+
+    if (cima && esquerda) return "Noroeste";
+    if (cima && direita) return "Nordeste";
+    if (baixo && esquerda) return "Sudoeste";
+    if (baixo && direita) return "Sudeste";
+    if (cima) return "Norte";
+    if (baixo) return "Sul";
+    if (esquerda) return "Oeste";
+    if (direita) return "Leste";
+    return "";
+}
+

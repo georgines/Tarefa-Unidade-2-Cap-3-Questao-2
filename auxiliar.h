@@ -3,9 +3,6 @@
 #include "sistema.h"
 #include "string"
 
-// botoes
-void monitorar_botoes();
-
 // leds
 std::string alternar_led(uint gpio, bool &estado_led);
 
@@ -19,7 +16,11 @@ void inicializar_led(uint8_t pino_led);
 
 void inicializar_leds();
 
-// sensores
-float obter_temperatura_interna();
+//joystick
+void inicializar_joystick();
 
-void inicializar_sensor_temperatura();
+int ler_posicao_joystick_x();
+
+int ler_posicao_joystick_y();
+
+std::string obter_direcao_joystick();

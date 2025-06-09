@@ -13,13 +13,12 @@ int main()
 {
     inicializar_stdio();
     inicializar_leds();
-    inicializar_sensor_temperatura();
     inicializar_wifi();
     inicializar_servidor();
+    inicializar_joystick();
     while (true)
     {
         cyw43_arch_poll();
-        monitorar_botoes();
     }
     return 0;
 }
